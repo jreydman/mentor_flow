@@ -1,77 +1,70 @@
-// function fs:read_folder() {
-//   - open thread(r)
-//   - init buffer
-//   - get request
-//   - close buffer
-//   - close thread
+import express from "express";
+import http from "node:http";
+import fs from "node:fs";
 
-//   return new fileArray
-// }
+const users = [
+    { id: 1, name: "John Doe" },
+    { id: 2, name: "Jane Smith" },
+    ];
 
-// fs/promise
-// fs/posix
-// fs
+const app = express();
+const port = 3000;
 
-// path
+// Middleware для логирования
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next(); // Передаем управление следующему middleware или маршруту
+});
 
-// os
+app.listen(port, () => {
+    console.log(`Сервер слушает порт ${port}`);
+});
 
-// const arrayBuffer = await fs/promise:readfolder("path/to/file.txt")
-// awiat fs/promise:readolder("path/to/file.txt","r").then((fileArray)=>{})
+//================= // Маршруты // =======
 
+// Статический маршрут для получения списка пользователей
+app.get("/users", (req, res) => {
+    res.json(users);
+    res.send(`${users}`);
+});
+//http://localhost:3000/users
+//[{"id":1,"name":"John Doe"},{"id":2,"name":"Jane Smith"}]
 
-// const * as fs from posix
+// Маршрут с параметром для получения пользователя по ID
+app.get("/users/:id", (req, res) => {
+    const userId = req.params.id;
+    const user = { id: userId, name: `User ${userId}` };
+    res.json(user);
+    res.send(`${user}`);
 
+    fs.writeFile('users.json', user, (err) => {
+        if (err) throw err;
+        console.log('Файл записан успешно');
+    });
+});
+//http://localhost:3000/users/userId
+//{"id":"userId","name":"User userId"}
 
-// bytecode - cpp - nodejs - nodeps:packages - js - (express, fastify, koa) - (nestjs, nextjs)
+app.get("/", (req, res) => {
+    res.send("Сервер запущен!");
+});
 
-// express => app.get(route,...,callback)
-// fastify => app.get(route,...,callback)
+//=========== // controller // ===========
+let users2 = null;
+http.get('http://localhost:3000/users', (res) => {
+    res.on('data', (chunk) => {
+        console.log(`Полученные данные: ${chunk}`);
+        users2 = chunk.toString();
+    });
 
+    res.on('end', () => {
+        console.log(`Ответ полностью получен`);
 
-
-
-// cosnst app = express({
-//     port: 3000
-// })
-
-
-// app.use(middleware(reqest, response,next))
-// app.get("/foo", ...[{middleware(request, response, next), middleware(request, response, next ) controller(request, response)}])
-
-// const router_foo = express_router("/auth")
-// router_foo.user(auth_middleware(req,res,next))
-// route.get("/profile") // /foo/baz
-// route.get("/news")
-
-// app.use(router_foo)
-
-
-// router.get("/foo/bar")
-// router.get("/foo/baz")
-// router.get("/foo/baz/taz")
-
-
-// app.run()
-
-// //=>
-
-// nestjs = nestFactory(express)
-// ...
-// nestjs.run()
-
-
-// packges:
-// fs (files: read, write, rw(X))
-// os (hostname)
-// path (cwd, cd, ls ps)
-
-import express from "express"
-
-const app = express()
-
-
-
-app(3000, ()=>{
-    //..
-})
+        fs.writeFile('users.json', users2, (err) => {
+            if (err) throw err;
+            console.log('Файл записан успешно');
+        });
+    });
+}).on('error', (err) => {
+    console.error('Ошибка:', err);
+});
